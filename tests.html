@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.js"></script>
+
+    <script type="text/javascript" src="http://code.jquery.com/qunit/qunit-1.18.0.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.18.0.css" type="text/css">
+
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+
+    <script type="text/javascript" src="insta-quiz.js"></script>
+
+    <script type="text/javascript">
+        var choices = ["a", "b", "c"];
+
+        QUnit.test("Multiple Choice Question", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", answer: "Bob", choices: choices}
+                ]
+            });
+
+            assert.equal(jQuery('#quiz .form-group input').length, 4);
+            assert.equal(jQuery('#quiz button').length, 1);
+        });
+
+        QUnit.test("Yes No Question", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", type: "yesno", answer: "Bob", choices: choices}
+                ]
+            });
+
+            assert.equal(jQuery('#quiz .form-group input').length, 2);
+            assert.equal(jQuery('#quiz button').length, 1);
+        });
+
+
+        QUnit.test("Text Question", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", type: "text", answer: "Bob"}
+                ]
+            });
+
+            assert.equal(jQuery('#quiz .form-group input').length, 1);
+            assert.equal(jQuery('#quiz button').length, 1);
+        });
+
+        QUnit.test("Required Question Has Class On Form Group", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"}
+                ]
+            });
+
+            assert.equal(jQuery('#quiz [name=requiredQuestion]').closest('.form-group').hasClass("required"), true);
+        });
+
+        QUnit.test("Required Question Gets Error Class On Failed Submission", function(assert){
+            var originalAlert = window.alert;
+            window.alert = function(){};
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"}
+                ]
+            });
+
+            jQuery('#quiz button').click();
+            assert.equal(jQuery('#quiz [name=requiredQuestion]').closest('.form-group').hasClass("has-error"), true);
+            window.alert = originalAlert;
+        });
+
+        QUnit.test("Required Question Gets Success Class On Good Value", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {label: "Duah", question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"}
+                ]
+            });
+
+            jQuery('#quiz [name=requiredQuestion][value=Yes]').attr('checked', 'checked');
+            jQuery('#quiz form').on('submit', function(){return false;});
+            jQuery('#quiz button').click();
+            assert.equal(jQuery('#quiz [name=requiredQuestion]').closest('.form-group').hasClass("has-error"), false);
+        });
+
+        QUnit.test("Score Correct With 2 Questions", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"},
+                    {question: "Why did the chicken not cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion1"}
+                ]
+            });
+
+            jQuery('#quiz [name=requiredQuestion][value=Yes]').attr('checked', 'checked');
+            jQuery('#quiz [name=requiredQuestion1][value=No]').attr('checked', 'checked');
+            jQuery('#quiz form').on('submit', function(){return false;});
+            jQuery('#quiz button').click();
+            assert.equal(jQuery('#quiz [name=score]').val(), 50);
+        });
+
+        QUnit.test("Score Correct With 3 Questions Only Grade 2", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"},
+                    {question: "Why did the chicken not cross the road?", type: "yesno", answer: "", required: false, name: "requiredQuestion1"},
+                    {question: "Why did the chicken not cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion2"}
+                ]
+            });
+
+            jQuery('#quiz [name=requiredQuestion][value=Yes]').attr('checked', 'checked');
+            jQuery('#quiz [name=requiredQuestion2][value=No]').attr('checked', 'checked');
+            jQuery('#quiz form').on('submit', function(){return false;});
+            jQuery('#quiz button').click();
+            assert.equal(jQuery('#quiz [name=score]').val(), 50);
+        });
+
+        QUnit.test("Post Url correct", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"},
+                    {question: "Why did the chicken not cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion1"}
+                ],
+                submissionUrl: 'http://www.google.com'
+            });
+
+            assert.equal(jQuery('#quiz form').attr('action'), 'http://www.google.com');
+        });
+
+        QUnit.test("Load Quiz From Url String", function(assert){
+            jQuery('#quiz').instaQuiz({
+                'questions': [
+                    {question: "Why did the chicken cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion"},
+                    {question: "Why did the chicken not cross the road?", type: "yesno", answer: "Yes", required: true, name: "requiredQuestion1"}
+                ],
+                submissionUrl: 'http://www.google.com'
+            });
+
+            assert.equal(jQuery('#quiz form').attr('action'), 'http://www.google.com');
+        });
+
+    </script>
+</head>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture">
+        <div id="quiz">
+
+        </div>
+    </div>
+</body>
+</html>
